@@ -1,0 +1,21 @@
+{
+ "n_pairs": 184,
+ "raw": {
+  "recall_at_1": 0.087,
+  "recall_at_5": 0.277,
+  "recall_at_10": 0.37,
+  "mrr": 0.158,
+  "same_song_median_cosine": 0.89,
+  "random_pair_median_cosine": 0.808,
+  "share_same_song_above_0_95": 0.207
+ },
+ "whitened": {
+  "recall_at_1": 0.141,
+  "recall_at_5": 0.38,
+  "recall_at_10": 0.5,
+  "mrr": 0.246,
+  "same_song_median_cosine": 0.153,
+  "random_pair_median_cosine": -0.001,
+  "share_same_song_above_0_95": 0.011
+ }
+}

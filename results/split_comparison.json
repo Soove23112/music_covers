@@ -1,0 +1,14 @@
+[
+ {
+  "name": "random_5fold",
+  "roc_auc": 0.914,
+  "pr_auc": 0.96,
+  "seconds": 42
+ },
+ {
+  "name": "grouped_5fold",
+  "roc_auc": 0.91,
+  "pr_auc": 0.958,
+  "seconds": 43
+ }
+]

@@ -1,0 +1,51 @@
+[
+ {
+  "name": "date_only",
+  "n_features": 1,
+  "roc_auc": 0.739,
+  "pr_auc": 0.875,
+  "seconds": 4
+ },
+ {
+  "name": "duration_only",
+  "n_features": 1,
+  "roc_auc": 0.703,
+  "pr_auc": 0.859,
+  "seconds": 4
+ },
+ {
+  "name": "metadata",
+  "n_features": 3,
+  "roc_auc": 0.862,
+  "pr_auc": 0.936,
+  "seconds": 4
+ },
+ {
+  "name": "lyrics_only",
+  "n_features": 768,
+  "roc_auc": 0.876,
+  "pr_auc": 0.94,
+  "seconds": 43
+ },
+ {
+  "name": "lyrics_whitened",
+  "n_features": 768,
+  "roc_auc": 0.869,
+  "pr_auc": 0.933,
+  "seconds": 46
+ },
+ {
+  "name": "lyrics_and_date_duration",
+  "n_features": 770,
+  "roc_auc": 0.91,
+  "pr_auc": 0.958,
+  "seconds": 42
+ },
+ {
+  "name": "all",
+  "n_features": 771,
+  "roc_auc": 0.914,
+  "pr_auc": 0.962,
+  "seconds": 43
+ }
+]
