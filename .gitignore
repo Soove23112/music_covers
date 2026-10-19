@@ -1,0 +1,14 @@
+data/
+!data/.gitkeep
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+results/cache/
+*.npy
+*.parquet
+.DS_Store
+catboost_info/
+results/oof.npy
+results/retrieval_dists.npz
