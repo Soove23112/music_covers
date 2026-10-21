@@ -1,0 +1,292 @@
+{
+ "cutoff_year": 2022,
+ "train_years": [
+  2009,
+  2021
+ ],
+ "n_train": 7982,
+ "cover_share_train": 0.801,
+ "dropped_shared_songs": {
+  "2022": 23,
+  "2023": 8
+ },
+ "tests": {
+  "2022": {
+   "n": 1491,
+   "cover_share": 0.543
+  },
+  "2023": {
+   "n": 552,
+   "cover_share": 0.241
+  }
+ },
+ "seeds": [
+  42,
+  43,
+  44
+ ],
+ "sets": {
+  "all": {
+   "threshold": 0.822,
+   "train_cv": {
+    "value": 0.8965719834169114,
+    "ci_low": 0.8870985832758022,
+    "ci_high": 0.9061248592145041,
+    "precision": 0.951,
+    "recall": 0.786,
+    "hidden_originals": 257,
+    "share_of_originals": 0.162,
+    "per_seed_auc": [
+     0.888,
+     0.885,
+     0.89
+    ]
+   },
+   "2022": {
+    "value": 0.9050165114601496,
+    "ci_low": 0.888736795844323,
+    "ci_high": 0.9212519617834695,
+    "precision": 0.935,
+    "recall": 0.711,
+    "hidden_originals": 40,
+    "share_of_originals": 0.059,
+    "per_seed_auc": [
+     0.904,
+     0.904,
+     0.904
+    ],
+    "mean_score_covers": 0.804,
+    "mean_score_originals": 0.238
+   },
+   "2023": {
+    "value": 0.906293179248838,
+    "ci_low": 0.8767400330336031,
+    "ci_high": 0.9364021869107518,
+    "precision": 0.803,
+    "recall": 0.398,
+    "hidden_originals": 13,
+    "share_of_originals": 0.031,
+    "per_seed_auc": [
+     0.907,
+     0.902,
+     0.903
+    ],
+    "mean_score_covers": 0.684,
+    "mean_score_originals": 0.177
+   },
+   "seconds": 138
+  },
+  "no_date": {
+   "threshold": 0.784,
+   "train_cv": {
+    "value": 0.8828329426895196,
+    "ci_low": 0.8720145098023411,
+    "ci_high": 0.892894234317718,
+    "precision": 0.94,
+    "recall": 0.822,
+    "hidden_originals": 335,
+    "share_of_originals": 0.211,
+    "per_seed_auc": [
+     0.874,
+     0.872,
+     0.875
+    ]
+   },
+   "2022": {
+    "value": 0.8950461994642386,
+    "ci_low": 0.8787763233381907,
+    "ci_high": 0.9119690783707038,
+    "precision": 0.943,
+    "recall": 0.653,
+    "hidden_originals": 32,
+    "share_of_originals": 0.047,
+    "per_seed_auc": [
+     0.893,
+     0.894,
+     0.896
+    ],
+    "mean_score_covers": 0.745,
+    "mean_score_originals": 0.176
+   },
+   "2023": {
+    "value": 0.8976438710140505,
+    "ci_low": 0.8667735886406438,
+    "ci_high": 0.9280156978328126,
+    "precision": 0.772,
+    "recall": 0.331,
+    "hidden_originals": 13,
+    "share_of_originals": 0.031,
+    "per_seed_auc": [
+     0.9,
+     0.895,
+     0.895
+    ],
+    "mean_score_covers": 0.587,
+    "mean_score_originals": 0.126
+   },
+   "seconds": 145
+  },
+  "lyrics_only": {
+   "threshold": 0.753,
+   "train_cv": {
+    "value": 0.8535831809962183,
+    "ci_low": 0.8403637859341099,
+    "ci_high": 0.8649342462533638,
+    "precision": 0.921,
+    "recall": 0.85,
+    "hidden_originals": 464,
+    "share_of_originals": 0.293,
+    "per_seed_auc": [
+     0.847,
+     0.842,
+     0.845
+    ]
+   },
+   "2022": {
+    "value": 0.8789642910221881,
+    "ci_low": 0.8588291749385515,
+    "ci_high": 0.8976800581698096,
+    "precision": 0.895,
+    "recall": 0.719,
+    "hidden_originals": 68,
+    "share_of_originals": 0.1,
+    "per_seed_auc": [
+     0.879,
+     0.878,
+     0.877
+    ],
+    "mean_score_covers": 0.756,
+    "mean_score_originals": 0.204
+   },
+   "2023": {
+    "value": 0.8904480772336569,
+    "ci_low": 0.8565488199709117,
+    "ci_high": 0.9219565070992998,
+    "precision": 0.739,
+    "recall": 0.489,
+    "hidden_originals": 23,
+    "share_of_originals": 0.055,
+    "per_seed_auc": [
+     0.889,
+     0.889,
+     0.889
+    ],
+    "mean_score_covers": 0.633,
+    "mean_score_originals": 0.142
+   },
+   "seconds": 135
+  },
+  "metadata": {
+   "threshold": 0.632,
+   "train_cv": {
+    "value": 0.8270526059879212,
+    "ci_low": 0.8159136390557996,
+    "ci_high": 0.8382339851304541,
+    "precision": 0.94,
+    "recall": 0.636,
+    "hidden_originals": 261,
+    "share_of_originals": 0.165,
+    "per_seed_auc": [
+     0.821,
+     0.823,
+     0.819
+    ]
+   },
+   "2022": {
+    "value": 0.725935135879711,
+    "ci_low": 0.6995386274918066,
+    "ci_high": 0.7514721112492886,
+    "precision": 0.676,
+    "recall": 0.681,
+    "hidden_originals": 264,
+    "share_of_originals": 0.387,
+    "per_seed_auc": [
+     0.716,
+     0.726,
+     0.733
+    ],
+    "mean_score_covers": 0.741,
+    "mean_score_originals": 0.553
+   },
+   "2023": {
+    "value": 0.5974572469359556,
+    "ci_low": 0.5430230349127511,
+    "ci_high": 0.6508371722208229,
+    "precision": 0.288,
+    "recall": 0.526,
+    "hidden_originals": 173,
+    "share_of_originals": 0.413,
+    "per_seed_auc": [
+     0.576,
+     0.601,
+     0.609
+    ],
+    "mean_score_covers": 0.639,
+    "mean_score_originals": 0.564
+   },
+   "seconds": 14
+  },
+  "date_only": {
+   "threshold": 0.536,
+   "train_cv": {
+    "value": 0.6784426749723476,
+    "ci_low": 0.6637865007574691,
+    "ci_high": 0.6918937088461857,
+    "precision": 0.889,
+    "recall": 0.489,
+    "hidden_originals": 391,
+    "share_of_originals": 0.247,
+    "per_seed_auc": [
+     0.669,
+     0.67,
+     0.664
+    ]
+   },
+   "2022": {
+    "value": 0.5,
+    "ci_low": 0.5,
+    "ci_high": 0.5,
+    "precision": 0.0,
+    "recall": 0.0,
+    "hidden_originals": 0,
+    "share_of_originals": 0.0,
+    "per_seed_auc": [
+     0.5,
+     0.5,
+     0.5
+    ],
+    "mean_score_covers": 0.519,
+    "mean_score_originals": 0.519
+   },
+   "2023": {
+    "value": 0.5,
+    "ci_low": 0.5,
+    "ci_high": 0.5,
+    "precision": 0.0,
+    "recall": 0.0,
+    "hidden_originals": 0,
+    "share_of_originals": 0.0,
+    "per_seed_auc": [
+     0.5,
+     0.5,
+     0.5
+    ],
+    "mean_score_covers": 0.519,
+    "mean_score_originals": 0.519
+   },
+   "seconds": 14
+  }
+ },
+ "all_minus_no_date": {
+  "2022": {
+   "value": 0.01,
+   "ci_low": 0.0064,
+   "ci_high": 0.0138
+  },
+  "2023": {
+   "value": 0.0086,
+   "ci_low": 0.0028,
+   "ci_high": 0.0152
+  }
+ }
+}
