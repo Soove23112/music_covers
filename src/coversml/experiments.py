@@ -6,11 +6,12 @@ from __future__ import annotations
 import time
 
 import numpy as np
+import pandas as pd
 from catboost import CatBoostClassifier
 from sklearn.metrics import average_precision_score, roc_auc_score
 from sklearn.model_selection import StratifiedGroupKFold, StratifiedKFold
 
-from .eval import calibration_table, cost_threshold, summary, threshold_table
+from .eval import bootstrap, calibration_table, cost_threshold, summary, threshold_table
 from .hackathon import Hackathon
 
 CATBOOST = {
@@ -123,6 +124,189 @@ def final(h: Hackathon, cost_fp: float = 5.0, n_boot: int = 500) -> tuple[dict, 
         "metadata_share_of_importance": round(float(imp[-3:].sum() / imp.sum()), 3),
     }
     return report, oof
+
+
+def _years(h: Hackathon) -> np.ndarray:
+    return pd.to_datetime(h.frame["dttm"], unit="ms").dt.year.to_numpy()
+
+
+def _feature_sets(h: Hackathon) -> dict[str, np.ndarray]:
+    meta = h.meta
+    return {
+        "all": np.hstack([h.emb, meta]),
+        "no_date": np.hstack([h.emb, meta[:, 1:]]),
+        "lyrics_only": h.emb,
+        "metadata": meta,
+        "date_only": meta[:, :1],
+    }
+
+
+def _at_threshold(y: np.ndarray, p: np.ndarray, thr: float) -> dict:
+    pred = p >= thr
+    tp, fp = int((pred & (y == 1)).sum()), int((pred & (y == 0)).sum())
+    return {
+        "precision": round(tp / max(tp + fp, 1), 3),
+        "recall": round(tp / max(int(y.sum()), 1), 3),
+        "hidden_originals": fp,
+        "share_of_originals": round(fp / max(int((y == 0).sum()), 1), 3),
+    }
+
+
+def _past_and_future(X, y, groups, train, test, seed):
+    """Grouped folds on the training period; the future is scored by the same fold models,
+    so the threshold picked on their out-of-fold scores applies to the same score scale."""
+    tr = np.flatnonzero(train)
+    oof = np.zeros(len(tr))
+    future = np.zeros(int(test.sum()))
+    params = {**CATBOOST, "random_seed": seed}
+    for a, b in grouped_splits(X[tr], y[tr], groups[tr], seed=seed):
+        m = CatBoostClassifier(**params)
+        m.fit(X[tr][a], y[tr][a])
+        oof[b] = m.predict_proba(X[tr][b])[:, 1]
+        future += m.predict_proba(X[test])[:, 1] / 5
+    return oof, future
+
+
+def _paired_diff(y, p1, p2, groups, n_boot: int = 1000, seed: int = 0) -> dict:
+    """Group bootstrap of ROC-AUC(p1) - ROC-AUC(p2) on the same resampled songs."""
+    rng = np.random.default_rng(seed)
+    uniq, inv = np.unique(groups, return_inverse=True)
+    members = [np.flatnonzero(inv == g) for g in range(len(uniq))]
+    vals = []
+    for _ in range(n_boot):
+        idx = np.concatenate([members[g] for g in rng.integers(0, len(uniq), len(uniq))])
+        if y[idx].min() == y[idx].max():
+            continue
+        vals.append(roc_auc_score(y[idx], p1[idx]) - roc_auc_score(y[idx], p2[idx]))
+    low, high = np.percentile(vals, [2.5, 97.5])
+    point = roc_auc_score(y, p1) - roc_auc_score(y, p2)
+    return {
+        "value": round(float(point), 4),
+        "ci_low": round(float(low), 4),
+        "ci_high": round(float(high), 4),
+    }
+
+
+def temporal(h: Hackathon, cutoff_year: int = 2022, seeds=(42, 43, 44), n_boot: int = 500) -> dict:
+    """Train on tracks added before ``cutoff_year``, test on each later year.
+
+    Scores are averaged over fold models and seeds; per-seed ROC-AUC is kept to show
+    the spread from training noise. The threshold is chosen on the training period's
+    out-of-fold scores and carried forward unchanged. Test tracks whose song also
+    appears in the training period are dropped.
+    """
+    years = _years(h)
+    train = years < cutoff_year
+    seen = np.isin(h.groups, np.unique(h.groups[train]))
+    test = ~train & ~seen
+    test_years = sorted(int(y) for y in np.unique(years[test]))
+    out = {
+        "cutoff_year": cutoff_year,
+        "train_years": [int(years[train].min()), int(years[train].max())],
+        "n_train": int(train.sum()),
+        "cover_share_train": round(float(h.y[train].mean()), 3),
+        "dropped_shared_songs": {y: int(((years == y) & seen).sum()) for y in test_years},
+        "tests": {
+            y: {
+                "n": int((test & (years == y)).sum()),
+                "cover_share": round(float(h.y[test & (years == y)].mean()), 3),
+            }
+            for y in test_years
+        },
+        "seeds": list(seeds),
+        "sets": {},
+    }
+    yt, gt, yrs = h.y[test], h.groups[test], years[test]
+    scores = {}
+    for name, X in _feature_sets(h).items():
+        t0 = time.time()
+        runs = [_past_and_future(X, h.y, h.groups, train, test, s) for s in seeds]
+        oof = np.mean([r[0] for r in runs], axis=0)
+        fut = np.mean([r[1] for r in runs], axis=0)
+        scores[name] = fut
+        thr = cost_threshold(h.y[train], oof)["threshold"]
+        res = {
+            "threshold": round(thr, 3),
+            "train_cv": {
+                **bootstrap("roc_auc", h.y[train], oof, h.groups[train], n_boot=n_boot).as_dict(),
+                **_at_threshold(h.y[train], oof, thr),
+                "per_seed_auc": [round(float(roc_auc_score(h.y[train], r[0])), 3) for r in runs],
+            },
+        }
+        for y in test_years:
+            m = yrs == y
+            res[y] = {
+                **bootstrap("roc_auc", yt[m], fut[m], gt[m], n_boot=n_boot).as_dict(),
+                **_at_threshold(yt[m], fut[m], thr),
+                "per_seed_auc": [round(float(roc_auc_score(yt[m], r[1][m])), 3) for r in runs],
+                "mean_score_covers": round(float(fut[m][yt[m] == 1].mean()), 3),
+                "mean_score_originals": round(float(fut[m][yt[m] == 0].mean()), 3),
+            }
+        res["seconds"] = round(time.time() - t0)
+        out["sets"][name] = res
+    out["all_minus_no_date"] = {
+        y: _paired_diff(
+            yt[yrs == y], scores["all"][yrs == y], scores["no_date"][yrs == y], gt[yrs == y]
+        )
+        for y in test_years
+    }
+    return out
+
+
+def rolling(h: Hackathon, cutoffs=(2020, 2021, 2022), sets=("all", "no_date")) -> list[dict]:
+    """The threshold's life span: train before each cutoff, score every later year."""
+    years = _years(h)
+    feats = _feature_sets(h)
+    rows = []
+    for c in cutoffs:
+        train = years < c
+        test = ~train & ~np.isin(h.groups, np.unique(h.groups[train]))
+        for name in sets:
+            oof, fut = _past_and_future(feats[name], h.y, h.groups, train, test, 42)
+            thr = cost_threshold(h.y[train], oof)["threshold"]
+            yt, yrs = h.y[test], years[test]
+            for y in sorted(int(v) for v in np.unique(yrs)):
+                m = yrs == y
+                rows.append(
+                    {
+                        "cutoff": int(c),
+                        "set": name,
+                        "year": y,
+                        "years_after": y - int(c) + 1,
+                        "n": int(m.sum()),
+                        "cover_share": round(float(yt[m].mean()), 3),
+                        "roc_auc": round(float(roc_auc_score(yt[m], fut[m])), 3),
+                        **_at_threshold(yt[m], fut[m], thr),
+                    }
+                )
+    return rows
+
+
+def by_year(h: Hackathon, oof: np.ndarray, first: int = 2016, n_boot: int = 500) -> list[dict]:
+    """ROC-AUC of grouped out-of-fold scores inside each year (earlier years pooled).
+
+    Within one year the date carries little information, so this shows how well the
+    model ranks tracks once the period is fixed.
+    """
+    years = np.maximum(_years(h), first - 1)
+    X = _feature_sets(h)["no_date"]
+    oof_no_date, _ = _oof(X, h.y, grouped_splits(X, h.y, h.groups))
+    rows = []
+    for y in np.unique(years):
+        m = years == y
+        rows.append(
+            {
+                "year": int(y),
+                "pooled_before": bool(y == first - 1),
+                "n": int(m.sum()),
+                "cover_share": round(float(h.y[m].mean()), 3),
+                "all": bootstrap("roc_auc", h.y[m], oof[m], h.groups[m], n_boot=n_boot).as_dict(),
+                "no_date": bootstrap(
+                    "roc_auc", h.y[m], oof_no_date[m], h.groups[m], n_boot=n_boot
+                ).as_dict(),
+            }
+        )
+    return rows
 
 
 def _rank_of_original(En: np.ndarray, a: np.ndarray, b: np.ndarray) -> np.ndarray:
